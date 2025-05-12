@@ -21,7 +21,7 @@
 2. **Process**: Text is extracted and summarized.
 3. **AI Generation**: The Gemini API generates quiz questions from the content.
 4. **Interactive Quiz**: You answer MCQs directly in the app and get feedback.
-5. **User Ranking**: The app ranks users based on the number of correct answers.
+5. **User Ranking**: The app ranks users based on the number of correct answers.(stores the data in the json file)
 
 ---
 
