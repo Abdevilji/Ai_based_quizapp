@@ -6,7 +6,7 @@
 
 ## ✨ Features
 
-- 📂 Upload any supported document (PDF, DOCX, TXT)
+- 📂 Upload any supported document (TXT) currently only text file supported
 - 🤖 Automatically generate quiz questions using **Gemini API**
 - 📝 Take multiple-choice quizzes in the browser
 - ✅ Instant scoring and feedback
