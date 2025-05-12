@@ -35,9 +35,19 @@
 ---
 
 ## 📦 Installation
+.
 
 ```bash
 git clone https://github.com/Abdevilji/Ai_based_quizapp.git
 cd Ai_based_quizapp
 pip install -r requirements.txt
 streamlit run app.py
+```
+Configure Gemini API Key
+Create a .env file in the root directory of the project and add your Gemini API key:
+
+.env file
+GOOGLE_API_KEY_NEW=your_actual_api_key_here
+
+⚠️ Important: Replace your_actual_api_key_here with your valid Gemini API key.
+Do not share your API key publicly or push it to version control
