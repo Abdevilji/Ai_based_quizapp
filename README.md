@@ -41,7 +41,7 @@
 git clone https://github.com/Abdevilji/Ai_based_quizapp.git
 cd Ai_based_quizapp
 pip install -r requirements.txt
-streamlit run app.py
+streamlit run ai_quiz.py
 ```
 Configure Gemini API Key
 Create a .env file in the root directory of the project and add your Gemini API key:
