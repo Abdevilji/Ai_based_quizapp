@@ -30,7 +30,7 @@
 - **Frontend/UI**: Streamlit
 - **AI Engine**: Gemini API (Google's Generative AI)
 - **Python Libraries**:  
-  `streamlit`, `google-generativeai`, `PyPDF2`, `python-docx`, `nltk`, `tqdm`, `pandas`
+  `streamlit`, `google-generativeai`, `pydantic`, `python-docx`
 
 ---
 
