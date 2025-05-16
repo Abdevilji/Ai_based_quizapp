@@ -34,15 +34,20 @@ def reset_all():
         del st.session_state[key]
     st.rerun()  # Resets the app and state
 
-def get_questions(age, subject, context_text):
-    prompt = f"""Using the following text as context, generate 10  quiz questions to help prepare for a Competition:
+def get_questions( context_text):
+    prompt = f"""Using the following text as context, randomly select and extract content from different sections to generate 10 diverse quiz questions. Ensure that the selection of topics varies with each run to simulate random sampling from the text:
 
 {context_text}
 
-For each question, provide four multiple choice options (A, B, C, D) where only one is correct. Make sure the correct answer is not always the same letter. For each question, also provide an explanation for the correct answer.
+For each question:
+- Provide four multiple choice options (A, B, C, D), only one of which is correct.
+- Vary the position of the correct answer.
 
-Return the response as a JSON array containing 10 objects, each with the keys 'question', 'choices', 'correct_answer', and 'explanation'.
+Ensure that questions are based on different sections of the context and do not follow a fixed or sequential order.
+
+Return the result as a JSON array of 10 objects, each with these keys: 'question', 'choices', 'correct_answer'.
 """
+
     response = client.models.generate_content(
         model=MODEL_ID,
         contents=prompt,
@@ -65,7 +70,7 @@ def load_context_from_file(path):
 
 
 def initial_form():
-    st.title("🧠 STEM Quiz for Kids")
+    st.title("🧠 Lets see How much You know about")
     st.markdown("Please enter your details to begin:")
 
     # Directly load file content from local storage
@@ -73,7 +78,7 @@ def initial_form():
 
     with st.form("user_init_form"):
         username = st.text_input("Username")
-        age = st.slider("Select your AGE:", 10, 40, 15)
+        # age = st.slider("Select your AGE:", 10, 40, 15)
         subject = "company"
         submitted = st.form_submit_button("Start Quiz")
 
@@ -84,13 +89,13 @@ def initial_form():
             st.warning("Please enter a username.")
         else:
             st.session_state.username = username
-            st.session_state.age = age
+            # st.session_state.age = age
             st.session_state.subject = subject
             st.session_state.context_text = file_content
             st.session_state.user_scores[username] = 0
             save_scores(st.session_state.user_scores)
             with st.spinner("Generating quiz questions..."):
-                st.session_state.quiz_data = get_questions(age, subject, file_content)
+                st.session_state.quiz_data = get_questions( file_content)
             st.session_state.current_question_index = 0
             st.session_state.form_count = 0
             st.rerun()
@@ -100,7 +105,7 @@ def quiz_flow():
     st.title("🧠 Quiz from the provided details.txt file")
     st.sidebar.write(f"User: {st.session_state.username}")
     show_leaderboard()
-    st.markdown(f"**Subject:** {st.session_state.subject} | **Age:** {st.session_state.age}")
+    # st.markdown(f"**Subject:** {st.session_state.subject} | **Age:** {st.session_state.age}")
     
     current_index = st.session_state.current_question_index
     total_questions = len(st.session_state.quiz_data)
@@ -114,37 +119,39 @@ def quiz_flow():
 
     with st.form(key=f"quiz_form_{current_index}"):
         st.markdown(f"### Q: {current_quiz['question']}")
-        user_choice = st.radio("Choose your answer:", current_quiz['choices'], key=f"choice_{current_index}")
-        
-        # Disable submit button if already submitted for this question
+        user_choice = st.radio(
+        "Choose your answer:",
+        current_quiz['choices'],
+        key=f"choice_{current_index}",
+        disabled=st.session_state.get(question_key, False)
+        )
+
         submitted = st.form_submit_button("Submit", disabled=st.session_state.get(question_key, False))
-        
+
         if submitted:
             if user_choice == current_quiz['correct_answer']:
                 st.session_state.user_scores[st.session_state.username] += 1
                 save_scores(st.session_state.user_scores)
-                # st.success("✅ Correct!")
-            # else:
-                # st.error("❌ Incorrect!")
-            # st.info(f"💡 Explanation: {current_quiz['explanation']}")
-            st.session_state[question_key] = True  # Lock this question
+            st.session_state[question_key] = True  # ✅ Lock this question
             st.session_state.question_answered = True
             st.rerun()
 
-    
     # with st.form(key=f"quiz_form_{current_index}"):
     #     st.markdown(f"### Q: {current_quiz['question']}")
-    #     user_choice = st.radio("Choose your answer:", current_quiz['choices'])
-    #     submitted = st.form_submit_button("Submit")
+    #     user_choice = st.radio("Choose your answer:", current_quiz['choices'], key=f"choice_{current_index}")
+        
+    #     # Disable submit button if already submitted for this question
+    #     submitted = st.form_submit_button("Submit", disabled=st.session_state.get(question_key, False))
         
     #     if submitted:
     #         if user_choice == current_quiz['correct_answer']:
     #             st.session_state.user_scores[st.session_state.username] += 1
     #             save_scores(st.session_state.user_scores)
-    #         #     st.success("✅ Correct!")
+    #             # st.success("✅ Correct!")
     #         # else:
-    #         #     st.error("❌ Incorrect!")
+    #             # st.error("❌ Incorrect!")
     #         # st.info(f"💡 Explanation: {current_quiz['explanation']}")
+    #         st.session_state[question_key] = False  # Lock this question
     #         st.session_state.question_answered = True
     #         st.rerun()
 
@@ -161,58 +168,6 @@ def quiz_flow():
             st.success(f"Quiz complete! Your score: {st.session_state.user_scores[st.session_state.username]}/{total_questions}")
             if st.button("Start New Quiz"):
                 reset_all()
-
-# def quiz_flow():
-#     st.title("🧠 STEM Quiz for Kids")
-#     st.sidebar.write(f"User: {st.session_state.username}")
-#     show_leaderboard()
-#     st.markdown(f"**Subject:** {st.session_state.subject} | **Age:** {st.session_state.age}")
-    
-#     current_index = st.session_state.current_question_index
-#     total_questions = len(st.session_state.quiz_data)
-    
-#     # Progress tracking
-#     st.progress((current_index + 1) / total_questions)  # Fixed progress calculation
-#     st.write(f"Question {current_index + 1} of {total_questions}")
-    
-#     # Current question form
-#     with st.form(key=f"question_{current_index}", clear_on_submit=True):
-#         current_quiz = st.session_state.quiz_data[current_index]
-#         st.markdown(f"### Q: {current_quiz['question']}")
-#         user_choice = st.radio("Choose your answer:", 
-#                              current_quiz['choices'],
-#                              key=f"choice_{current_index}")
-        
-#         submitted = st.form_submit_button("Submit Answer")
-        
-#         if submitted:
-#             if user_choice == current_quiz['correct_answer']:
-#                 st.session_state.user_scores[st.session_state.username] += 1
-#                 save_scores(st.session_state.user_scores)
-#                 st.success("✅ Correct!")
-#             else:
-#                 st.error("❌ Incorrect!")
-#             st.info(f"💡 Explanation: {current_quiz['explanation']}")
-#             st.session_state.question_answered = True  # Set navigation flag
-
-#     # Navigation controls (outside form)
-#     if st.session_state.get('question_answered', False):
-#         st.markdown("---")
-#         col1, col2 = st.columns([1, 3])
-#         with col1:
-#             if current_index < total_questions - 1:
-#                 if st.button("Next Question →", 
-#                            key=f"next_{current_index}",
-#                            type="primary"):
-#                     # Atomic state update
-#                     st.session_state.current_question_index += 1
-#                     del st.session_state.question_answered  # Reset flag
-#             else:
-#                 st.balloons()
-#                 st.success(f"Final Score: {st.session_state.user_scores[st.session_state.username]}/{total_questions}")
-#                 if st.button("Start New Quiz", type="primary"):
-#                     reset_all()
-
 
 def main():
     # Top-right Restart button
@@ -240,3 +195,4 @@ if __name__ == '__main__':
     client = genai.Client(api_key=api_key)
     MODEL_ID = "gemini-2.0-flash-001"
     main()
+
